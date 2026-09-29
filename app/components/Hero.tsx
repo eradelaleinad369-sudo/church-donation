@@ -13,7 +13,7 @@ export default function Hero({ eventStart }: { eventStart: string }) {
         <p className="eyebrow" style={{ color: "var(--gold)" }}>Youth Day 2026</p>
         <h1>A Life Of<br />True Worship</h1>
         <p className="lead2">
-          A special day set aside for the youth to have a true worship with our creator  — 25th of October 2026 at
+          A special day set aside to have a genuine worship with our redeemer  — 25th of October 2026 at
           1A Amusa Street, Mafoluku-Oshodi, Lagos. Members, guests and visitors are all welcome.
         </p>
         <Countdown eventStart={eventStart} />
