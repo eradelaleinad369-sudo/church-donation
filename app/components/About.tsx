@@ -4,7 +4,7 @@ export default function About() {
       <div className="about2">
         <div>
           <p className="eyebrow">About the event</p>
-          <h2>A Time to Seek God, Grow Together</h2>
+          <h2>A Time to Seek God and Worship Together</h2>
           <p className="lead" style={{ margin: "14px 0 22px" }}>
             Youth Day brings members, guests and visitors together for two days: Saturday's outreach
             to orphanage homes, and Sunday's main program of worship, teaching and fellowship. It's a
