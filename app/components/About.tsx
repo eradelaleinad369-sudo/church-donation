@@ -1,10 +1,17 @@
+"use client";
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
+
 export default function About() {
+  const images = useQuery(api.siteImages.get);
+  const photo = images?.about_photo;
+
   return (
     <section id="about">
       <div className="about2">
         <div>
           <p className="eyebrow">About the event</p>
-          <h2>A Time to Seek God and Worship Together</h2>
+          <h2>A Time to Seek God, Grow Together</h2>
           <p className="lead" style={{ margin: "14px 0 22px" }}>
             Youth Day brings members, guests and visitors together for two days: Saturday's outreach
             to orphanage homes, and Sunday's main program of worship, teaching and fellowship. It's a
@@ -12,7 +19,13 @@ export default function About() {
           </p>
           <a className="learn" href="#program">See the full program →</a>
         </div>
-        <div className="ph">Event photo placeholder</div>
+        {photo ? (
+          <div className="ph" style={{ border: "none", padding: 0, overflow: "hidden" }}>
+            <img src={photo} alt="Youth Day" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+          </div>
+        ) : (
+          <div className="ph">Event photo placeholder</div>
+        )}
       </div>
     </section>
   );
