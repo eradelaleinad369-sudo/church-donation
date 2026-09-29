@@ -1,113 +1,69 @@
-import { NextRequest, NextResponse } from "next/server";
-import crypto from "crypto";
+import { query, mutation } from "./_generated/server";
+import { v } from "convex/values";
 
-import { ConvexHttpClient } from "convex/browser";
-import { api } from "@/convex/_generated/api";
+// Sum of PAID donations only — never trust pending/unverified amounts.
+export const totals = query({
+  args: {},
+  handler: async (ctx) => {
+    const paid = await ctx.db
+      .query("donations")
+      .filter((q) => q.eq(q.field("status"), "paid"))
+      .collect();
+    const NGN = paid.filter((d) => d.currency === "NGN").reduce((s, d) => s + d.amount, 0);
+    const USD = paid.filter((d) => d.currency === "USD").reduce((s, d) => s + d.amount, 0);
+    const donorCount = new Set(paid.map((d) => d.donorEmail)).size;
+    return { NGN, USD, donorCount };
+  },
+});
 
-const convex = new ConvexHttpClient(
-  process.env.NEXT_PUBLIC_CONVEX_URL as string
-);
+export const listForAdmin = query({
+  args: {},
+  handler: async (ctx) => ctx.db.query("donations").order("desc").collect(),
+});
 
-export async function POST(req: NextRequest) {
-  try {
-    const rawBody = await req.text();
+// Called from the donate form right before Monnify checkout opens,
+// so we have a record to reconcile against when the webhook fires.
+export const createPending = mutation({
+  args: {
+    reference: v.string(),
+    amount: v.number(),
+    currency: v.union(v.literal("NGN"), v.literal("USD")),
+    donorName: v.optional(v.string()),
+    donorEmail: v.string(),
+  },
+  handler: async (ctx, args) => {
+    await ctx.db.insert("donations", { ...args, status: "pending" });
+  },
+});
 
-    const signature = req.headers.get("monnify-signature");
-    const monnifySecret = process.env.MONNIFY_SECRET_KEY;
-    const webhookSecret = process.env.WEBHOOK_SECRET;
+// Called ONLY from the Monnify webhook route, after its signature has
+// already been verified there. The secret is a second layer of protection
+// in case this mutation is ever called some other way.
+export const markPaid = mutation({
+  args: {
+    reference: v.string(),
+    monnifyTransactionRef: v.string(),
+    secret: v.string(),
+    paymentMethod: v.optional(v.string()),
+  },
+  handler: async (ctx, { reference, monnifyTransactionRef, secret }) => {
+    if (secret.trim() !== (process.env.WEBHOOK_SECRET ?? "").trim()) throw new Error("Unauthorized");
+    const row = await ctx.db
+      .query("donations")
+      .withIndex("by_reference", (q) => q.eq("reference", reference))
+      .unique();
+    if (row) await ctx.db.patch(row._id, { status: "paid", monnifyTransactionRef });
+  },
+});
 
-    if (!webhookSecret) {
-      console.error("Missing WEBHOOK_SECRET.");
-
-      return NextResponse.json(
-        { error: "Webhook configuration error" },
-        { status: 500 }
-      );
-    }
-
-    if (signature && monnifySecret) {
-      const expectedSignature = crypto
-        .createHmac("sha512", monnifySecret)
-        .update(rawBody)
-        .digest("hex");
-
-      const receivedBuffer = Buffer.from(signature);
-      const expectedBuffer = Buffer.from(expectedSignature);
-
-      if (
-        receivedBuffer.length !== expectedBuffer.length ||
-        !crypto.timingSafeEqual(
-          receivedBuffer,
-          expectedBuffer
-        )
-      ) {
-        console.error("Invalid Monnify webhook signature.");
-
-        return NextResponse.json(
-          { error: "Invalid signature" },
-          { status: 401 }
-        );
-      }
-    }
-
-    const payload = JSON.parse(rawBody);
-
-    console.log("Monnify webhook received:", payload);
-
-    const eventType = payload.eventType;
-    const eventData = payload.eventData;
-
-    if (!eventData) {
-      return NextResponse.json({ received: true });
-    }
-
-    const reference = eventData.paymentReference;
-    const transactionReference =
-      eventData.transactionReference;
-
-    if (!reference || !transactionReference) {
-      console.error(
-        "Webhook missing transaction references."
-      );
-
-      return NextResponse.json({ received: true });
-    }
-
-    if (
-      eventType === "SUCCESSFUL_TRANSACTION" ||
-      eventType ===
-        "SUCCESSFUL_TRANSACTION_NOTIFICATION"
-    ) {
-      const paymentMethod =
-        eventData.paymentMethod ||
-        eventData.paymentMethodCode;
-
-      await convex.mutation(api.donations.markPaid, {
-        reference,
-        monnifyTransactionRef: transactionReference,
-        paymentMethod,
-        secret: webhookSecret,
-      });
-    }
-
-    if (eventType === "FAILED_TRANSACTION") {
-      await convex.mutation(api.donations.markFailed, {
-        reference,
-        secret: webhookSecret,
-      });
-    }
-
-    return NextResponse.json({
-      received: true,
-    });
-  } catch (error) {
-    console.error("Monnify webhook error:", error);
-
-    return NextResponse.json(
-      {
-        error: "Webhook processing failed",
-      },
-      { status: 500 }
-    );
-  }
-}
+export const markFailed = mutation({
+  args: { reference: v.string(), secret: v.string() },
+  handler: async (ctx, { reference, secret }) => {
+    if (secret.trim() !== (process.env.WEBHOOK_SECRET ?? "").trim()) throw new Error("Unauthorized");
+    const row = await ctx.db
+      .query("donations")
+      .withIndex("by_reference", (q) => q.eq("reference", reference))
+      .unique();
+    if (row) await ctx.db.patch(row._id, { status: "failed" });
+  },
+});
