@@ -8,7 +8,7 @@ export default function Footer() {
               <path d="M12 2v20M4 8h16" />
             </svg>
           </span>
-          <b>Apostolic Faith Church<br />Oshodi</b>
+          <b>Apostolic Faith Church<br />Mafoluku Branch</b>
         </div>
         <p className="tag">&ldquo;Two days set apart to seek Him — together.&rdquo;</p>
         <div className="soc" aria-label="Social links">
