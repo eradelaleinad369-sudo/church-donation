@@ -15,6 +15,7 @@ const MONNIFY_CONTRACT_CODE =
 
 export async function POST(req: NextRequest) {
   try {
+    // Check required environment variables
     if (
       !MONNIFY_API_KEY ||
       !MONNIFY_SECRET_KEY ||
@@ -33,6 +34,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Read request body
     const body = await req.json();
 
     const {
@@ -43,28 +45,54 @@ export async function POST(req: NextRequest) {
       donorEmail,
     } = body;
 
+    // Convert amount to a real number
+    const numericAmount = Number(amount);
+
+    // Validate payment reference
     if (!reference) {
       return NextResponse.json(
-        { error: "Missing payment reference." },
+        {
+          error:
+            "Missing payment reference.",
+        },
         { status: 400 }
       );
     }
 
-    if (!amount || amount <= 0) {
+    // Validate amount
+    if (
+      !Number.isFinite(numericAmount) ||
+      numericAmount <= 0
+    ) {
+      console.error(
+        "Invalid donation amount:",
+        amount
+      );
+
       return NextResponse.json(
-        { error: "Invalid payment amount." },
+        {
+          error:
+            "Invalid payment amount.",
+        },
         { status: 400 }
       );
     }
 
+    // Validate email
     if (!donorEmail) {
       return NextResponse.json(
-        { error: "Donor email is required." },
+        {
+          error:
+            "Donor email is required.",
+        },
         { status: 400 }
       );
     }
 
-    // First authenticate with Monnify.
+    // --------------------------------------------------
+    // STEP 1: Authenticate with Monnify
+    // --------------------------------------------------
+
     const authString = Buffer.from(
       `${MONNIFY_API_KEY}:${MONNIFY_SECRET_KEY}`
     ).toString("base64");
@@ -83,7 +111,8 @@ export async function POST(req: NextRequest) {
       }
     );
 
-    const authData = await authResponse.json();
+    const authData =
+      await authResponse.json();
 
     if (
       !authResponse.ok ||
@@ -107,6 +136,10 @@ export async function POST(req: NextRequest) {
       authData.responseBody?.accessToken;
 
     if (!accessToken) {
+      console.error(
+        "Monnify authentication did not return an access token."
+      );
+
       return NextResponse.json(
         {
           error:
@@ -116,18 +149,29 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // --------------------------------------------------
+    // STEP 2: Build Monnify payment payload
+    // --------------------------------------------------
+
     const paymentPayload = {
-      amount,
+      // IMPORTANT:
+      // Monnify expects this to be a number.
+      amount: numericAmount,
+
       customerName:
         donorName || "Youth Day Donor",
-      customerEmail: donorEmail,
 
-      paymentReference: reference,
+      customerEmail:
+        donorEmail,
+
+      paymentReference:
+        reference,
 
       paymentDescription:
         "Youth Day Donation",
 
-      currencyCode: currency || "NGN",
+      currencyCode:
+        currency || "NGN",
 
       contractCode:
         MONNIFY_CONTRACT_CODE,
@@ -144,17 +188,35 @@ export async function POST(req: NextRequest) {
       ],
     };
 
+    // Temporary debugging log
+    console.log(
+      "Monnify payment payload:",
+      JSON.stringify(
+        paymentPayload,
+        null,
+        2
+      )
+    );
+
+    // --------------------------------------------------
+    // STEP 3: Initialize Monnify transaction
+    // --------------------------------------------------
+
     const paymentResponse = await fetch(
       `${MONNIFY_BASE_URL}/api/v1/merchant/transactions/init-transaction`,
       {
         method: "POST",
 
         headers: {
-          Authorization: `Bearer ${accessToken}`,
-          "Content-Type": "application/json",
+          Authorization:
+            `Bearer ${accessToken}`,
+
+          "Content-Type":
+            "application/json",
         },
 
-        body: JSON.stringify(paymentPayload),
+        body:
+          JSON.stringify(paymentPayload),
 
         cache: "no-store",
       }
@@ -162,6 +224,10 @@ export async function POST(req: NextRequest) {
 
     const paymentData =
       await paymentResponse.json();
+
+    // --------------------------------------------------
+    // STEP 4: Handle Monnify response
+    // --------------------------------------------------
 
     if (
       !paymentResponse.ok ||
@@ -182,10 +248,20 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // --------------------------------------------------
+    // STEP 5: Get checkout URL
+    // --------------------------------------------------
+
     const checkoutUrl =
-      paymentData.responseBody?.checkoutUrl;
+      paymentData.responseBody
+        ?.checkoutUrl;
 
     if (!checkoutUrl) {
+      console.error(
+        "Monnify response did not contain checkoutUrl:",
+        paymentData
+      );
+
       return NextResponse.json(
         {
           error:
@@ -195,13 +271,20 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // --------------------------------------------------
+    // STEP 6: Return checkout information
+    // --------------------------------------------------
+
     return NextResponse.json({
       ok: true,
+
       checkoutUrl,
+
       transactionReference:
         paymentData.responseBody
           ?.transactionReference,
     });
+
   } catch (error) {
     console.error(
       "Payment initialization error:",
