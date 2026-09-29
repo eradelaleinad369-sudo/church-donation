@@ -8,7 +8,7 @@ export default function Header() {
               <path d="M12 2v20M4 8h16" />
             </svg>
           </span>
-          <b>Mafoluku's Youth Day
+          <b>Mafoluku's Youth Day.
             </b>
         </div>
         <nav className="mainnav">
