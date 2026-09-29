@@ -13,7 +13,11 @@ export default defineSchema({
   meetings: defineTable({
     title: v.string(),
     date: v.string(),
-    mode: v.union(v.literal("in_person"), v.literal("online"), v.literal("both")),
+    mode: v.union(
+      v.literal("in_person"),
+      v.literal("online"),
+      v.literal("both")
+    ),
     location: v.optional(v.string()),
     onlineLink: v.optional(v.string()),
     description: v.string(),
@@ -44,20 +48,35 @@ export default defineSchema({
   donations: defineTable({
     reference: v.string(),
     amount: v.number(),
-    currency: v.union(v.literal("NGN"), v.literal("USD")),
+    currency: v.union(
+      v.literal("NGN"),
+      v.literal("USD")
+    ),
+
     donorName: v.optional(v.string()),
     donorEmail: v.string(),
-    status: v.union(v.literal("pending"), v.literal("paid"), v.literal("failed")),
+
+    status: v.union(
+      v.literal("pending"),
+      v.literal("paid"),
+      v.literal("failed")
+    ),
+
     monnifyTransactionRef: v.optional(v.string()),
+    paymentMethod: v.optional(v.string()),
+
+    paidAt: v.optional(v.number()),
+    createdAt: v.number(),
   }).index("by_reference", ["reference"]),
 
   adminUsers: defineTable({
     email: v.string(),
     passwordHash: v.string(),
   }).index("by_email", ["email"]),
-  
-    siteImages: defineTable({
+
+  siteImages: defineTable({
     slot: v.string(),
     storageId: v.id("_storage"),
   }).index("by_slot", ["slot"]),
 });
+
