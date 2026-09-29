@@ -9,7 +9,7 @@ export default function Header() {
             </svg>
           </span>
           <b>Mafoluku's Youth Day
-            <br />A life of true worship.</b>
+            </b>
         </div>
         <nav className="mainnav">
           <a className="active" href="#top">Home</a>
