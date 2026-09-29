@@ -7,12 +7,12 @@ const PRESETS = { NGN: [5000, 10000, 50000], USD: [10, 25, 100] } as const;
 const SYM = { NGN: "₦", USD: "$" } as const;
 
 const VERSES = [
-  { t: "Give cheerfully and from the heart, not out of pressure.", c: "2 Corinthians 9:7" },
-  { t: "Honor the Lord with the first and best of what you have, and your resources will overflow.", c: "Proverbs 3:9-10" },
-  { t: "Bring your offering in full, and see how God pours out more blessing than you have room for.", c: "Malachi 3:10" },
+  { t: "Every man according as he purposeth in his heart, so let him give; not grudgingly, or of necessity: for God loveth a cheerful giver.", c: "2 Corinthians 9:7" },
+  { t: "Honour the LORD with thy substance, and with the firstfruits of all thine increase. So shall thy barns be filled with plenty, and thy presses shall burst out with new wine.", c: "Proverbs 3:9-10" },
+  { t: "Bring ye all the tithes into the storehouse, that there may be meat in mine house, and prove me now herewith, saith the LORD of hosts, if I will not open you the windows of heaven, and pour you out a blessing, that there shall not be room enough to receive it.", c: "Malachi 3:10" },
   { t: "A poor widow's small offering, given from all she had, meant more than the large gifts of the wealthy.", c: "Mark 12:41-44" },
-  { t: "True worshippers are the ones who worship the Father in spirit and in truth.", c: "John 4:23-24" },
-  { t: "Offer your whole self to God as a living sacrifice — that is true and proper worship.", c: "Romans 12:1" },
+  { t: "God is a Spirit: and they that worship him must worship him in spirit and in truth.", c: "John 4:24" },
+  { t: "I beseech you therefore, brethren, by the mercies of God, that ye present your bodies a living sacrifice, holy, acceptable unto God, which is your reasonable service.", c: "Romans 12:1" },
 ];
 
 export default function DonateSection() {
