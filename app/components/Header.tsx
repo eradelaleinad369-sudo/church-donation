@@ -19,8 +19,7 @@ export default function Header() {
               </svg>
             </span>
           )}
-          <b>Apostolic Faith
-            <br />Church, Oshodi</b>
+          <b>Mafoluku Youth Day</b>
         </div>
         <nav className="mainnav">
           <a className="active" href="#top">Home</a>
