@@ -2,9 +2,9 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getSession } from "@/lib/adminSession";
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
+export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   // /admin/login itself renders through this layout too, so only gate the rest.
-  const session = getSession();
+  const session = await getSession();
 
   return (
     <div style={{ fontFamily: "system-ui", minHeight: "100vh", background: "#f5f5f3" }}>

@@ -14,6 +14,6 @@ export async function POST(req: NextRequest) {
   const ok = await bcrypt.compare(password, user.passwordHash);
   if (!ok) return NextResponse.json({ error: "Invalid login" }, { status: 200 });
 
-  setSessionCookie(signSession(user.email));
+  setSessionCookie(await signSession(user.email));
   return NextResponse.json({ ok: true });
 }

@@ -1,16 +1,20 @@
-import jwt from "jsonwebtoken";
+import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
 
 const COOKIE_NAME = "admin_session";
-const SECRET = process.env.ADMIN_SESSION_SECRET as string;
+const secret = new TextEncoder().encode(process.env.ADMIN_SESSION_SECRET as string);
 
-export function signSession(email: string) {
-  return jwt.sign({ email }, SECRET, { expiresIn: "7d" });
+export async function signSession(email: string) {
+  return await new SignJWT({ email })
+    .setProtectedHeader({ alg: "HS256" })
+    .setExpirationTime("7d")
+    .sign(secret);
 }
 
-export function verifySession(token: string): { email: string } | null {
+export async function verifySession(token: string): Promise<{ email: string } | null> {
   try {
-    return jwt.verify(token, SECRET) as { email: string };
+    const { payload } = await jwtVerify(token, secret);
+    return payload as { email: string };
   } catch {
     return null;
   }
@@ -30,8 +34,8 @@ export function clearSessionCookie() {
   cookies().set(COOKIE_NAME, "", { path: "/", maxAge: 0 });
 }
 
-export function getSession(): { email: string } | null {
+export async function getSession(): Promise<{ email: string } | null> {
   const token = cookies().get(COOKIE_NAME)?.value;
   if (!token) return null;
-  return verifySession(token);
+  return await verifySession(token);
 }

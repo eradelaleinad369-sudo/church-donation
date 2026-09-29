@@ -15,7 +15,7 @@
     "react-dom": "18.3.1",
     "convex": "^1.13.0",
     "bcryptjs": "^2.4.3",
-    "jsonwebtoken": "^9.0.2"
+    "jose": "^5.9.6"
   },
   "devDependencies": {
     "typescript": "^5.5.4",
