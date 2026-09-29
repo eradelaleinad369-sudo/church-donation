@@ -55,4 +55,8 @@ export default defineSchema({
     email: v.string(),
     passwordHash: v.string(),
   }).index("by_email", ["email"]),
+    siteImages: defineTable({
+    slot: v.string(),
+    storageId: v.id("_storage"),
+  }).index("by_slot", ["slot"]),
 });
