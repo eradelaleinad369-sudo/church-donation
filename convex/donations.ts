@@ -1,7 +1,6 @@
-import { query, mutation, internalMutation } from "./_generated/server";
+import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
 
-// Sum of PAID donations only — never trust pending/unverified amounts.
 export const totals = query({
   args: {},
   handler: async (ctx) => {
@@ -21,8 +20,6 @@ export const listForAdmin = query({
   handler: async (ctx) => ctx.db.query("donations").order("desc").collect(),
 });
 
-// Called from the donate form right before Monnify checkout opens,
-// so we have a record to reconcile against when the webhook fires.
 export const createPending = mutation({
   args: {
     reference: v.string(),
@@ -36,11 +33,10 @@ export const createPending = mutation({
   },
 });
 
-// Called ONLY from the server-side Monnify webhook handler after the
-// transaction status has been verified directly with Monnify's API.
-export const markPaid = internalMutation({
-  args: { reference: v.string(), monnifyTransactionRef: v.string() },
-  handler: async (ctx, { reference, monnifyTransactionRef }) => {
+export const markPaid = mutation({
+  args: { reference: v.string(), monnifyTransactionRef: v.string(), secret: v.string() },
+  handler: async (ctx, { reference, monnifyTransactionRef, secret }) => {
+    if (secret !== process.env.WEBHOOK_SECRET) throw new Error("Unauthorized");
     const row = await ctx.db
       .query("donations")
       .withIndex("by_reference", (q) => q.eq("reference", reference))
@@ -49,9 +45,10 @@ export const markPaid = internalMutation({
   },
 });
 
-export const markFailed = internalMutation({
-  args: { reference: v.string() },
-  handler: async (ctx, { reference }) => {
+export const markFailed = mutation({
+  args: { reference: v.string(), secret: v.string() },
+  handler: async (ctx, { reference, secret }) => {
+    if (secret !== process.env.WEBHOOK_SECRET) throw new Error("Unauthorized");
     const row = await ctx.db
       .query("donations")
       .withIndex("by_reference", (q) => q.eq("reference", reference))

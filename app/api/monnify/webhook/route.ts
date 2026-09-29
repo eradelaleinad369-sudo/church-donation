@@ -26,4 +26,8 @@ export async function POST(req: NextRequest) {
   }
 
   return NextResponse.json({ ok: true });
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> 3becbdc645d8590ad31582247bc5471f5aa94fb8
