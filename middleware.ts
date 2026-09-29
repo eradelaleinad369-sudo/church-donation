@@ -12,7 +12,8 @@ export function middleware(req: NextRequest) {
   try {
     jwt.verify(token, process.env.ADMIN_SESSION_SECRET as string);
     return NextResponse.next();
-  } catch {
+  } catch (err) {
+    console.log("MIDDLEWARE AUTH FAIL:", err instanceof Error ? err.message : err);
     return NextResponse.redirect(new URL("/admin/login", req.url));
   }
 }
