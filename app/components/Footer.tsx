@@ -15,7 +15,7 @@ export default function Footer() {
           <a href="#" aria-label="Facebook">
             <svg width="16" height="16" fill="#fff" viewBox="0 0 24 24"><path d="M14 9h3V5h-3c-2.2 0-4 1.8-4 4v2H7v4h3v7h4v-7h3l1-4h-4V9c0-.6.4-1 1-1z" /></svg>
           </a>
-          <a href="@afmmafoluku" aria-label="Instagram">
+          <a href="https://www.instagram.com/afmmafoluku?stkn=MTlieXF4aHFtbmF2cQ==" aria-label="Instagram">
             <svg width="16" height="16" fill="none" stroke="#fff" strokeWidth={1.7} viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="5" /><circle cx="12" cy="12" r="4" /><circle cx="17.5" cy="6.5" r="1" /></svg>
           </a>
           <a href="#" aria-label="YouTube">
