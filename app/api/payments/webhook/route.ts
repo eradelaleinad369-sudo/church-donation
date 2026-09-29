@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 
 import { ConvexHttpClient } from "convex/browser";
-import { internal } from "@/convex/_generated/api";
+import { api } from "@/convex/_generated/api";
 
 const convex = new ConvexHttpClient(
   process.env.NEXT_PUBLIC_CONVEX_URL as string
@@ -12,71 +12,56 @@ export async function POST(req: NextRequest) {
   try {
     const rawBody = await req.text();
 
-    const signature =
-      req.headers.get("monnify-signature");
+    const signature = req.headers.get("monnify-signature");
+    const monnifySecret = process.env.MONNIFY_SECRET_KEY;
+    const webhookSecret = process.env.WEBHOOK_SECRET;
 
-    const secret =
-      process.env.MONNIFY_SECRET_KEY;
-
-    if (!signature || !secret) {
-      console.error(
-        "Missing Monnify signature or secret."
-      );
+    if (!webhookSecret) {
+      console.error("Missing WEBHOOK_SECRET.");
 
       return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
+        { error: "Webhook configuration error" },
+        { status: 500 }
       );
     }
 
-    const expectedSignature =
-      crypto
-        .createHmac("sha512", secret)
+    if (signature && monnifySecret) {
+      const expectedSignature = crypto
+        .createHmac("sha512", monnifySecret)
         .update(rawBody)
         .digest("hex");
 
-    if (
-      !crypto.timingSafeEqual(
-        Buffer.from(signature),
-        Buffer.from(expectedSignature)
-      )
-    ) {
-      console.error(
-        "Invalid Monnify webhook signature."
-      );
+      const receivedBuffer = Buffer.from(signature);
+      const expectedBuffer = Buffer.from(expectedSignature);
 
-      return NextResponse.json(
-        { error: "Invalid signature" },
-        { status: 401 }
-      );
+      if (
+        receivedBuffer.length !== expectedBuffer.length ||
+        !crypto.timingSafeEqual(
+          receivedBuffer,
+          expectedBuffer
+        )
+      ) {
+        console.error("Invalid Monnify webhook signature.");
+
+        return NextResponse.json(
+          { error: "Invalid signature" },
+          { status: 401 }
+        );
+      }
     }
 
     const payload = JSON.parse(rawBody);
 
-    console.log(
-      "Monnify webhook received:",
-      payload
-    );
+    console.log("Monnify webhook received:", payload);
 
-    const eventType =
-      payload.eventType;
-
-    const eventData =
-      payload.eventData;
+    const eventType = payload.eventType;
+    const eventData = payload.eventData;
 
     if (!eventData) {
-      return NextResponse.json(
-        { received: true }
-      );
+      return NextResponse.json({ received: true });
     }
 
-    /*
-     * Monnify sends the payment reference in
-     * eventData.paymentReference.
-     */
-    const reference =
-      eventData.paymentReference;
-
+    const reference = eventData.paymentReference;
     const transactionReference =
       eventData.transactionReference;
 
@@ -85,17 +70,11 @@ export async function POST(req: NextRequest) {
         "Webhook missing transaction references."
       );
 
-      return NextResponse.json(
-        { received: true }
-      );
+      return NextResponse.json({ received: true });
     }
 
-    /*
-     * Successful transaction.
-     */
     if (
-      eventType ===
-        "SUCCESSFUL_TRANSACTION" ||
+      eventType === "SUCCESSFUL_TRANSACTION" ||
       eventType ===
         "SUCCESSFUL_TRANSACTION_NOTIFICATION"
     ) {
@@ -103,40 +82,26 @@ export async function POST(req: NextRequest) {
         eventData.paymentMethod ||
         eventData.paymentMethodCode;
 
-      await convex.mutation(
-        internal.donations.markPaid,
-        {
-          reference,
-          monnifyTransactionRef:
-            transactionReference,
-          paymentMethod,
-        }
-      );
+      await convex.mutation(api.donations.markPaid, {
+        reference,
+        monnifyTransactionRef: transactionReference,
+        paymentMethod,
+        secret: webhookSecret,
+      });
     }
 
-    /*
-     * Failed transaction.
-     */
-    if (
-      eventType ===
-        "FAILED_TRANSACTION"
-    ) {
-      await convex.mutation(
-        internal.donations.markFailed,
-        {
-          reference,
-        }
-      );
+    if (eventType === "FAILED_TRANSACTION") {
+      await convex.mutation(api.donations.markFailed, {
+        reference,
+        secret: webhookSecret,
+      });
     }
 
     return NextResponse.json({
       received: true,
     });
   } catch (error) {
-    console.error(
-      "Monnify webhook error:",
-      error
-    );
+    console.error("Monnify webhook error:", error);
 
     return NextResponse.json(
       {
