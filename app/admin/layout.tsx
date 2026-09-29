@@ -16,6 +16,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <Link href="/admin/meetings" style={{ color: "#fff" }}>Meetings</Link>
           <Link href="/admin/past-events" style={{ color: "#fff" }}>Past Events</Link>
           <Link href="/admin/gallery" style={{ color: "#fff" }}>Gallery</Link>
+          <Link href="/admin/media" style={{ color: "#fff" }}>Site Images</Link>
           <Link href="/admin/donations" style={{ color: "#fff" }}>Donations</Link>
           <Link href="/admin/settings" style={{ color: "#fff" }}>Settings</Link>
           <form action="/api/admin/logout" method="post" style={{ marginLeft: "auto" }}>

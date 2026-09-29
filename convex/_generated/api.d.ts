@@ -15,6 +15,7 @@ import type * as meetings from "../meetings.js";
 import type * as pastEvents from "../pastEvents.js";
 import type * as schedule from "../schedule.js";
 import type * as settings from "../settings.js";
+import type * as siteImages from "../siteImages.js";
 
 import type {
   ApiFromModules,
@@ -30,6 +31,7 @@ declare const fullApi: ApiFromModules<{
   pastEvents: typeof pastEvents;
   schedule: typeof schedule;
   settings: typeof settings;
+  siteImages: typeof siteImages;
 }>;
 
 /**
