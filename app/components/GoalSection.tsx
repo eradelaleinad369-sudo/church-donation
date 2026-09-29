@@ -21,10 +21,10 @@ export default function GoalSection() {
     : "--";
 
   const breakdown = [
-    { label: "Charity Day", desc: "Gifts and outreach to orphanage homes", share: 25 },
-    { label: "Venue & Logistics", desc: "Sound, seating and event essentials", share: 35 },
-    { label: "Youth Ministry", desc: "Resources for ongoing youth programs", share: 20 },
-    { label: "Community Outreach", desc: "Extending the event's impact beyond the church", share: 20 },
+    { label: "Charity Day", desc: "Gifts and outreach to orphanage homes", share: 0 },
+    { label: "Venue & Logistics", desc: "Sound, seating and event essentials", share: 0 },
+    { label: "Youth Ministry", desc: "Resources for ongoing youth programs", share: 0 },
+    { label: "Community Outreach", desc: "Extending the event's impact beyond the church", share: 0 },
   ];
 
   return (
