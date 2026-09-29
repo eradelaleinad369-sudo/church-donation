@@ -8,8 +8,8 @@ export default function Header() {
               <path d="M12 2v20M4 8h16" />
             </svg>
           </span>
-          <b>Apostolic Faith
-            <br />Church, Oshodi</b>
+          <b>Mafoluku's Youth Day
+            <br />A life of true worship.</b>
         </div>
         <nav className="mainnav">
           <a className="active" href="#top">Home</a>
