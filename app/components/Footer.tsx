@@ -25,7 +25,7 @@ export default function Footer() {
       </div>
       <div className="bottom">
         <div className="wrap">
-          <span>© 2026 Apostolic Faith Church, Oshodi. All rights reserved.</span>
+          <span>© 2026 Apostolic Faith Church, Mafoluku. All rights reserved.</span>
           <span><a href="#top">Home</a><a href="#about">About</a><a href="#program">Program</a><a href="#donate">Donate</a></span>
         </div>
       </div>
