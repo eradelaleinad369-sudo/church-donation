@@ -68,7 +68,7 @@ export const markPaid = mutation({
   },
 
   handler: async (ctx, args) => {
-    if (args.secret !== process.env.WEBHOOK_SECRET) {
+ if (args.secret.trim() !== (process.env.WEBHOOK_SECRET ?? "").trim())  {
       throw new Error("Unauthorized");
     }
 
