@@ -1,6 +1,10 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
 
+function checkAdmin(token: string) {
+  if (token.trim() !== (process.env.ADMIN_API_TOKEN ?? "").trim()) throw new Error("Unauthorized");
+}
+
 export const list = query({
   args: {},
   handler: async (ctx) => {
@@ -16,20 +20,26 @@ export const add = mutation({
     attendance: v.optional(v.number()),
     summary: v.string(),
     photoIds: v.array(v.id("_storage")),
+    adminToken: v.string(),
   },
-  handler: async (ctx, args) => ctx.db.insert("pastEvents", args),
+  handler: async (ctx, { adminToken, ...rest }) => {
+    checkAdmin(adminToken);
+    return await ctx.db.insert("pastEvents", rest);
+  },
 });
 
 export const remove = mutation({
-  args: { id: v.id("pastEvents") },
-  handler: async (ctx, { id }) => {
+  args: { id: v.id("pastEvents"), adminToken: v.string() },
+  handler: async (ctx, { id, adminToken }) => {
+    checkAdmin(adminToken);
     await ctx.db.delete(id);
   },
 });
 
-// Called by the admin UI to get an upload URL for a photo, then the
-// returned storageId is saved via `add` above.
 export const generateUploadUrl = mutation({
-  args: {},
-  handler: async (ctx) => ctx.storage.generateUploadUrl(),
+  args: { adminToken: v.string() },
+  handler: async (ctx, { adminToken }) => {
+    checkAdmin(adminToken);
+    return await ctx.storage.generateUploadUrl();
+  },
 });

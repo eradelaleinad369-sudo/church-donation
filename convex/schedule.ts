@@ -1,6 +1,10 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
 
+function checkAdmin(token: string) {
+  if (token.trim() !== (process.env.ADMIN_API_TOKEN ?? "").trim()) throw new Error("Unauthorized");
+}
+
 export const list = query({
   args: {},
   handler: async (ctx) => {
@@ -16,9 +20,11 @@ export const add = mutation({
     title: v.string(),
     note: v.optional(v.string()),
     order: v.number(),
+    adminToken: v.string(),
   },
-  handler: async (ctx, args) => {
-    return await ctx.db.insert("scheduleItems", args);
+  handler: async (ctx, { adminToken, ...rest }) => {
+    checkAdmin(adminToken);
+    return await ctx.db.insert("scheduleItems", rest);
   },
 });
 
@@ -30,15 +36,18 @@ export const update = mutation({
     title: v.string(),
     note: v.optional(v.string()),
     order: v.number(),
+    adminToken: v.string(),
   },
-  handler: async (ctx, { id, ...rest }) => {
+  handler: async (ctx, { id, adminToken, ...rest }) => {
+    checkAdmin(adminToken);
     await ctx.db.patch(id, rest);
   },
 });
 
 export const remove = mutation({
-  args: { id: v.id("scheduleItems") },
-  handler: async (ctx, { id }) => {
+  args: { id: v.id("scheduleItems"), adminToken: v.string() },
+  handler: async (ctx, { id, adminToken }) => {
+    checkAdmin(adminToken);
     await ctx.db.delete(id);
   },
 });

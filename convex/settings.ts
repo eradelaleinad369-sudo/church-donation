@@ -19,7 +19,7 @@ export const upsert = mutation({
     adminToken: v.string(),
   },
   handler: async (ctx, { adminToken, ...args }) => {
-    if (adminToken !== process.env.ADMIN_API_TOKEN) throw new Error("Unauthorized");
+        if (adminToken.trim() !== (process.env.ADMIN_API_TOKEN ?? "").trim()) throw new Error("Unauthorized");
     const rows = await ctx.db.query("settings").collect();
     if (rows[0]) {
       await ctx.db.patch(rows[0]._id, args);
