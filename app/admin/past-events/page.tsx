@@ -1,11 +1,15 @@
 "use client";
+
 import { useState } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import { compressImage } from "@/lib/compressImage";
+import { useAdminToken } from "../AdminTokenProvider";
 
 export default function PastEventsPage() {
+  const adminToken = useAdminToken()!;
+
   const events = useQuery(api.pastEvents.list) ?? [];
   const add = useMutation(api.pastEvents.add);
   const remove = useMutation(api.pastEvents.remove);
@@ -19,36 +23,122 @@ export default function PastEventsPage() {
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
+
     if (!summary) return;
+
     const photoIds: Id<"_storage">[] = [];
+
     if (files) {
       for (const file of Array.from(files)) {
-  const compressed = await compressImage(file);
-  const url = await generateUploadUrl({ adminToken });
-  const res = await fetch(url, { method: "POST", headers: { "Content-Type": compressed.type }, body: compressed });
+        const compressed = await compressImage(file);
+
+        const url = await generateUploadUrl({
+          adminToken,
+        });
+
+        const res = await fetch(url, {
+          method: "POST",
+          headers: {
+            "Content-Type": compressed.type,
+          },
+          body: compressed,
+        });
+
         const { storageId } = await res.json();
+
         photoIds.push(storageId);
       }
     }
-    await add({ year, theme: theme || undefined, attendance: attendance ? Number(attendance) : undefined, summary, photoIds });
-    setTheme(""); setAttendance(""); setSummary(""); setFiles(null);
+
+    await add({
+      year,
+      theme: theme || undefined,
+      attendance: attendance
+        ? Number(attendance)
+        : undefined,
+      summary,
+      photoIds,
+      adminToken,
+    });
+
+    setTheme("");
+    setAttendance("");
+    setSummary("");
+    setFiles(null);
   }
 
   return (
     <div>
       <h1>Past Events</h1>
-      <form onSubmit={submit} style={{ display: "grid", gap: 8, maxWidth: 420, margin: "16px 0" }}>
-        <input type="number" value={year} onChange={(e) => setYear(Number(e.target.value))} placeholder="Year" />
-        <input value={theme} onChange={(e) => setTheme(e.target.value)} placeholder="Theme (optional)" />
-        <input type="number" value={attendance} onChange={(e) => setAttendance(e.target.value)} placeholder="Attendance (optional)" />
-        <textarea value={summary} onChange={(e) => setSummary(e.target.value)} placeholder="Summary / outcomes / testimonies" />
-        <input type="file" multiple accept="image/*" onChange={(e) => setFiles(e.target.files)} />
-        <button type="submit">Add past event</button>
+
+      <form
+        onSubmit={submit}
+        style={{
+          display: "grid",
+          gap: 8,
+          maxWidth: 420,
+          margin: "16px 0",
+        }}
+      >
+        <input
+          type="number"
+          value={year}
+          onChange={(e) => setYear(Number(e.target.value))}
+          placeholder="Year"
+        />
+
+        <input
+          value={theme}
+          onChange={(e) => setTheme(e.target.value)}
+          placeholder="Theme (optional)"
+        />
+
+        <input
+          type="number"
+          value={attendance}
+          onChange={(e) => setAttendance(e.target.value)}
+          placeholder="Attendance (optional)"
+        />
+
+        <textarea
+          value={summary}
+          onChange={(e) => setSummary(e.target.value)}
+          placeholder="Summary / outcomes / testimonies"
+        />
+
+        <input
+          type="file"
+          multiple
+          accept="image/*"
+          onChange={(e) => setFiles(e.target.files)}
+        />
+
+        <button type="submit">
+          Add past event
+        </button>
       </form>
+
       <ul>
         {events.map((ev) => (
-          <li key={ev._id} style={{ marginBottom: 8 }}>
-            <b>{ev.year}</b> — {ev.summary.slice(0, 60)}... ({ev.photoIds.length} photos) <button onClick={() => remove({ id: ev._id })}>Delete</button>
+          <li
+            key={ev._id}
+            style={{ marginBottom: 8 }}
+          >
+            <b>{ev.year}</b> —{" "}
+            {ev.summary.slice(0, 60)}...
+            {" "}
+            ({ev.photoIds.length} photos)
+
+            <button
+              onClick={() =>
+                remove({
+                  id: ev._id,
+                  adminToken,
+                })
+              }
+            >
+              Delete
+            </button>
           </li>
         ))}
       </ul>
