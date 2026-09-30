@@ -1,8 +1,6 @@
-import { internalQuery, mutation } from "./_generated/server";
+import { internalQuery, internalMutation } from "./_generated/server";
 import { v } from "convex/values";
 
-// Internal only — Convex enforces that this can never be called from
-// outside Convex (not from the browser, not from any external client).
 export const getByEmailInternal = internalQuery({
   args: { email: v.string() },
   handler: async (ctx, { email }) => {
@@ -13,7 +11,9 @@ export const getByEmailInternal = internalQuery({
   },
 });
 
-export const create = mutation({
+// Bootstrap-only: run via `npx convex run adminUsers:create` (requires your
+// Convex deploy credentials) — never callable from a browser or public API.
+export const create = internalMutation({
   args: { email: v.string(), passwordHash: v.string() },
   handler: async (ctx, { email, passwordHash }) => {
     await ctx.db.insert("adminUsers", { email: email.toLowerCase(), passwordHash });

@@ -1,9 +1,8 @@
-import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getSession } from "@/lib/adminSession";
+import AdminTokenProvider from "./AdminTokenProvider";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
-  // /admin/login itself renders through this layout too, so only gate the rest.
   const session = await getSession();
 
   return (
@@ -24,7 +23,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           </form>
         </nav>
       )}
-      <div style={{ padding: 24 }}>{children}</div>
+      <div style={{ padding: 24 }}>
+        {session ? <AdminTokenProvider>{children}</AdminTokenProvider> : children}
+      </div>
     </div>
   );
 }

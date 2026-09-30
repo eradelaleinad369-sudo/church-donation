@@ -24,8 +24,9 @@ export const totals = query({
 });
 
 export const listForAdmin = query({
-  args: {},
-  handler: async (ctx) => {
+  args: { adminToken: v.string() },
+  handler: async (ctx, { adminToken }) => {
+    if (adminToken !== process.env.ADMIN_API_TOKEN) throw new Error("Unauthorized");
     return await ctx.db.query("donations").order("desc").collect();
   },
 });

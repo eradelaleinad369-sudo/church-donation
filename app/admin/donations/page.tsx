@@ -1,9 +1,11 @@
 "use client";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { useAdminToken } from "../AdminTokenProvider";
 
 export default function DonationsPage() {
-  const donations = useQuery(api.donations.listForAdmin) ?? [];
+  const adminToken = useAdminToken();
+  const donations = useQuery(api.donations.listForAdmin, adminToken ? { adminToken } : "skip") ?? [];
   return (
     <div>
       <h1>Donations</h1>
