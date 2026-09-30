@@ -45,24 +45,22 @@ export default defineSchema({
     eventStart: v.string(),
   }),
 
-  donations: defineTable({
-  reference: v.string(),
-  amount: v.number(),
-  currency: v.union(v.literal("NGN"), v.literal("USD")),
-  donorName: v.optional(v.string()),
-  donorEmail: v.string(),
-
-  status: v.union(
-    v.literal("pending"),
-    v.literal("paid"),
-    v.literal("failed")
-  ),
-
-  monnifyTransactionRef: v.optional(v.string()),
-  paymentMethod: v.optional(v.string()),
-  paidAt: v.optional(v.number()),
-  createdAt: v.number(),
-}).index("by_reference", ["reference"]),
+    donations: defineTable({
+    reference: v.string(),
+    amount: v.number(),
+    currency: v.union(v.literal("NGN"), v.literal("USD")),
+    donorName: v.optional(v.string()),
+    donorEmail: v.string(),
+    status: v.union(
+      v.literal("pending"),
+      v.literal("paid"),
+      v.literal("failed")
+    ),
+    monnifyTransactionRef: v.optional(v.string()),
+    paymentMethod: v.optional(v.string()),
+    createdAt: v.optional(v.number()),
+    paidAt: v.optional(v.number()),
+  }).index("by_reference", ["reference"]),
 
   adminUsers: defineTable({
     email: v.string(),
