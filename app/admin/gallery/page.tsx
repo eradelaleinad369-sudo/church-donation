@@ -2,10 +2,11 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { useAdminToken } from "../AdminTokenProvider";
 import { compressImage } from "@/lib/compressImage";
 
-
 export default function GalleryAdminPage() {
+  const adminToken = useAdminToken()!;
   const photos = useQuery(api.gallery.list) ?? [];
   const add = useMutation(api.gallery.add);
   const remove = useMutation(api.gallery.remove);
@@ -13,13 +14,13 @@ export default function GalleryAdminPage() {
   const [caption, setCaption] = useState("");
 
   async function onUpload(e: React.ChangeEvent<HTMLInputElement>) {
-  const file = e.target.files?.[0];
-  if (!file) return;
-  const compressed = await compressImage(file);
-  const url = await generateUploadUrl({ adminToken });
-  const res = await fetch(url, { method: "POST", headers: { "Content-Type": compressed.type }, body: compressed });
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const compressed = await compressImage(file);
+    const url = await generateUploadUrl({ adminToken });
+    const res = await fetch(url, { method: "POST", headers: { "Content-Type": compressed.type }, body: compressed });
     const { storageId } = await res.json();
-    await add({ storageId, caption: caption || undefined, order: photos.length });
+    await add({ storageId, caption: caption || undefined, order: photos.length, adminToken });
     setCaption("");
     e.target.value = "";
   }
@@ -35,7 +36,7 @@ export default function GalleryAdminPage() {
         {photos.map((p: any) => (
           <div key={p._id} style={{ width: 160 }}>
             {p.url && <img src={p.url} alt={p.caption ?? ""} style={{ width: "100%", borderRadius: 6 }} />}
-            <button onClick={() => remove({ id: p._id })} style={{ marginTop: 4 }}>Delete</button>
+            <button onClick={() => remove({ id: p._id, adminToken })} style={{ marginTop: 4 }}>Delete</button>
           </div>
         ))}
       </div>
