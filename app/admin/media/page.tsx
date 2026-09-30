@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { useAdminToken } from "../AdminTokenProvider";
 
 const SLOTS = [
   { key: "hero_background", label: "Hero background image", hint: "Shown behind the homepage headline. A wide photo works best." },
@@ -10,6 +11,7 @@ const SLOTS = [
 ];
 
 export default function MediaPage() {
+  const adminToken = useAdminToken()!;
   const images = useQuery(api.siteImages.get);
   const generateUploadUrl = useMutation(api.siteImages.generateUploadUrl);
   const setSlot = useMutation(api.siteImages.setSlot);
@@ -17,10 +19,10 @@ export default function MediaPage() {
 
   async function onUpload(slot: string, file: File) {
     setBusy(slot);
-    const url = await generateUploadUrl();
+    const url = await generateUploadUrl({ adminToken });
     const res = await fetch(url, { method: "POST", headers: { "Content-Type": file.type }, body: file });
     const { storageId } = await res.json();
-    await setSlot({ slot, storageId });
+    await setSlot({ slot, storageId, adminToken });
     setBusy(null);
   }
 

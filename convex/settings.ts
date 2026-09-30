@@ -1,7 +1,6 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
 
-// Settings is a single row. Create it once via the admin Settings page.
 export const get = query({
   args: {},
   handler: async (ctx) => {
@@ -17,8 +16,10 @@ export const upsert = mutation({
     youtubeLiveUrl: v.optional(v.string()),
     liveEnabled: v.boolean(),
     eventStart: v.string(),
+    adminToken: v.string(),
   },
-  handler: async (ctx, args) => {
+  handler: async (ctx, { adminToken, ...args }) => {
+    if (adminToken !== process.env.ADMIN_API_TOKEN) throw new Error("Unauthorized");
     const rows = await ctx.db.query("settings").collect();
     if (rows[0]) {
       await ctx.db.patch(rows[0]._id, args);

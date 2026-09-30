@@ -2,8 +2,10 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { useAdminToken } from "../AdminTokenProvider";
 
 export default function SettingsPage() {
+  const adminToken = useAdminToken()!;
   const settings = useQuery(api.settings.get);
   const save = useMutation(api.settings.upsert);
 
@@ -25,7 +27,7 @@ export default function SettingsPage() {
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    await save({ donationTargetNGN: targetNGN, donationTargetUSD: targetUSD, youtubeLiveUrl: ytUrl || undefined, liveEnabled, eventStart });
+    await save({ donationTargetNGN: targetNGN, donationTargetUSD: targetUSD, youtubeLiveUrl: ytUrl || undefined, liveEnabled, eventStart, adminToken });
     alert("Saved.");
   }
 

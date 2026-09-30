@@ -14,13 +14,17 @@ export const get = query({
 });
 
 export const generateUploadUrl = mutation({
-  args: {},
-  handler: async (ctx) => ctx.storage.generateUploadUrl(),
+  args: { adminToken: v.string() },
+  handler: async (ctx, { adminToken }) => {
+    if (adminToken !== process.env.ADMIN_API_TOKEN) throw new Error("Unauthorized");
+    return await ctx.storage.generateUploadUrl();
+  },
 });
 
 export const setSlot = mutation({
-  args: { slot: v.string(), storageId: v.id("_storage") },
-  handler: async (ctx, { slot, storageId }) => {
+  args: { slot: v.string(), storageId: v.id("_storage"), adminToken: v.string() },
+  handler: async (ctx, { slot, storageId, adminToken }) => {
+    if (adminToken !== process.env.ADMIN_API_TOKEN) throw new Error("Unauthorized");
     const existing = await ctx.db
       .query("siteImages")
       .withIndex("by_slot", (q) => q.eq("slot", slot))
