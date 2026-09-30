@@ -1,3 +1,9 @@
 /** @type {import('next').NextConfig} */
-const nextConfig = {};
+const nextConfig = {
+  images: {
+    remotePatterns: [
+      { protocol: "https", hostname: "*.convex.cloud", pathname: "/api/storage/**" },
+    ],
+  },
+};
 module.exports = nextConfig;

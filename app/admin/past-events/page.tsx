@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
+import { compressImage } from "@/lib/compressImage";
 
 export default function PastEventsPage() {
   const events = useQuery(api.pastEvents.list) ?? [];
@@ -22,8 +23,9 @@ export default function PastEventsPage() {
     const photoIds: Id<"_storage">[] = [];
     if (files) {
       for (const file of Array.from(files)) {
-        const url = await generateUploadUrl();
-        const res = await fetch(url, { method: "POST", headers: { "Content-Type": file.type }, body: file });
+  const compressed = await compressImage(file);
+  const url = await generateUploadUrl({ adminToken });
+  const res = await fetch(url, { method: "POST", headers: { "Content-Type": compressed.type }, body: compressed });
         const { storageId } = await res.json();
         photoIds.push(storageId);
       }

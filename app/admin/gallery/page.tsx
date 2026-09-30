@@ -2,6 +2,8 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { compressImage } from "@/lib/compressImage";
+
 
 export default function GalleryAdminPage() {
   const photos = useQuery(api.gallery.list) ?? [];
@@ -11,10 +13,11 @@ export default function GalleryAdminPage() {
   const [caption, setCaption] = useState("");
 
   async function onUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const url = await generateUploadUrl();
-    const res = await fetch(url, { method: "POST", headers: { "Content-Type": file.type }, body: file });
+  const file = e.target.files?.[0];
+  if (!file) return;
+  const compressed = await compressImage(file);
+  const url = await generateUploadUrl({ adminToken });
+  const res = await fetch(url, { method: "POST", headers: { "Content-Type": compressed.type }, body: compressed });
     const { storageId } = await res.json();
     await add({ storageId, caption: caption || undefined, order: photos.length });
     setCaption("");
