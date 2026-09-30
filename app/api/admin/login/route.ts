@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import bcrypt from "bcryptjs";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "@/convex/_generated/api";
 import { signSession, setSessionCookie } from "@/lib/adminSession";
@@ -8,12 +7,8 @@ const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL as string
 
 export async function POST(req: NextRequest) {
   const { email, password } = await req.json();
-  const user = await convex.query(api.adminUsers.getByEmail, { email });
-  if (!user) return NextResponse.json({ error: "Invalid login" }, { status: 200 });
-
-  const ok = await bcrypt.compare(password, user.passwordHash);
-  if (!ok) return NextResponse.json({ error: "Invalid login" }, { status: 200 });
-
-  setSessionCookie(await signSession(user.email));
+  const result = await convex.action(api.adminAuth.verifyLogin, { email, password });
+  if (!result.ok) return NextResponse.json({ error: "Invalid login" }, { status: 401 });
+  setSessionCookie(await signSession(result.email!));
   return NextResponse.json({ ok: true });
 }

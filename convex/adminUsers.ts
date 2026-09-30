@@ -1,8 +1,9 @@
-import { query, mutation } from "./_generated/server";
+import { internalQuery, mutation } from "./_generated/server";
 import { v } from "convex/values";
 
-// Used only by the Next.js login API route (server-side, never exposed to the browser).
-export const getByEmail = query({
+// Internal only — Convex enforces that this can never be called from
+// outside Convex (not from the browser, not from any external client).
+export const getByEmailInternal = internalQuery({
   args: { email: v.string() },
   handler: async (ctx, { email }) => {
     return await ctx.db
@@ -12,8 +13,6 @@ export const getByEmail = query({
   },
 });
 
-// Run this once from the Convex dashboard's function runner (or `npx convex run`)
-// to create your first admin login — see README "Create your first admin".
 export const create = mutation({
   args: { email: v.string(), passwordHash: v.string() },
   handler: async (ctx, { email, passwordHash }) => {
