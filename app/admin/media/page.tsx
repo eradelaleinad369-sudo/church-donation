@@ -4,7 +4,6 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useAdminToken } from "../AdminTokenProvider";
 import { compressImage } from "@/lib/compressImage";
-import { compressImage } from "@/lib/compressImage";
 
 const SLOTS = [
   { key: "hero_background", label: "Hero background image", hint: "Shown behind the homepage headline. A wide photo works best." },
