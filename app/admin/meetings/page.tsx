@@ -2,8 +2,10 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { useAdminToken } from "../AdminTokenProvider";
 
 export default function MeetingsPage() {
+  const adminToken = useAdminToken()!;
   const meetings = useQuery(api.meetings.list) ?? [];
   const add = useMutation(api.meetings.add);
   const remove = useMutation(api.meetings.remove);
@@ -18,7 +20,7 @@ export default function MeetingsPage() {
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!title || !date || !description) return;
-    await add({ title, date, mode, location: location || undefined, onlineLink: onlineLink || undefined, description });
+    await add({ title, date, mode, location: location || undefined, onlineLink: onlineLink || undefined, description, adminToken });
     setTitle(""); setDate(""); setLocation(""); setOnlineLink(""); setDescription("");
   }
 
@@ -41,7 +43,7 @@ export default function MeetingsPage() {
       <ul>
         {meetings.map((m) => (
           <li key={m._id} style={{ marginBottom: 8 }}>
-            <b>{m.date}</b> — {m.title} ({m.mode}) <button onClick={() => remove({ id: m._id })}>Delete</button>
+            <b>{m.date}</b> — {m.title} ({m.mode}) <button onClick={() => remove({ id: m._id, adminToken })}>Delete</button>
           </li>
         ))}
       </ul>
